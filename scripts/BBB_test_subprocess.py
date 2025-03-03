@@ -130,10 +130,10 @@ class BayesianBBaroloMod(BayesianBBarolo):
         #res=res_Gaussian(model=model, data=data, noise=self.noise, mask=mask, multiplier=1)
         
         #Option D Gaussian residuals: no noise
-        res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1)
+        #res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1)
         
         #Option E Gaussian residuals: no noise, multiplied by 1000
-        #res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1000)
+        res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1000)
 
         #Option F Gaussian residuals: cube noise, multiplied by 1000    
         #res=res_Gaussian(model=model, data=data, noise=self.noise, mask=mask, multiplier=1000)
@@ -155,6 +155,7 @@ parser.add_argument('--fitsname', type=str, required=True, help='Fits name')
 parser.add_argument('--beamsize', type=str, required=True, help='beamsize parameter')
 parser.add_argument('--centre', type=str, required=True, help='positiontion centre of the galaxy')
 parser.add_argument('--halfbeam', type=str, required=True, help='half beamsize')
+parser.add_argument('--truth', type=str, required=True, help='truth values')
 # Parse arguments
 args = parser.parse_args()
 
@@ -171,6 +172,7 @@ beamsize = eval(args.beamsize)
 fitsname = args.fitsname
 centre = eval(args.centre)
 halfbeam = eval(args.halfbeam)
+truth = eval(args.truth)
 
 # Print the arguments to verify
 print(f" mask: {mask}, model: {model}, beamsize: {beamsize}, fitsname: {fitsname}, centre: {centre}, halfbeam: {halfbeam}")  
@@ -183,7 +185,8 @@ model = model
 fitsname = fitsname
 freepar = ['vrot','vdisp','inc_single','phi_single']
 #freepar = ['vrot','vdisp','dens','inc_single','phi_single']
-output = "/home/user/THESIS/tests_all_resolution/inclination_livepoints"
+output = "/home/user/THESIS/tests_same_rings_E_2000"
+
 
 # Creating an object for bayesian barolo
 f3d = BayesianBBaroloMod(fitsname)
@@ -194,6 +197,8 @@ radii=np.arange(halfbeam,240,beamsize)
 # Initializing rings. 
 f3d.init(radii=radii,xpos=centre,ypos=centre,vsys=0.0,\
          vrot=100,vdisp=10,vrad=0,z0=30,inc=70,phi=0)
+
+
 
 # Here it is possible to give any other BBarolo parameter, for example to control
 # the mask, linear, bweight, cdens, wfunc, etc...
@@ -213,6 +218,11 @@ f3d.show_options()
 #f3d.bounds['ypos']  = [20,30]
 #f3d.bounds['vsys']  = [-20,20]
 #f3d.bounds['dens']  = dens
+
+""" f3d.priors['inc']["loc"]= [10]
+f3d.priors['inc']["scale"]= [80]
+f3d.priors['phi']["loc"]= [10]
+f3d.priors['phi']["scale"]= [200]  """
 
 
 # Keywords to be passed to the sample run
@@ -243,19 +253,21 @@ with open(output_file_path, 'w') as f:
 
         # Print summary of results
         f3d.results.summary()
+        #print(f3d.params)
 
 
-#cfig =corner.corner(
-#    f3d.samples, weights=f3d.weights, labels=f3d.freepar_names, color='purple',
-#    plot_datapoints=False, label_kwargs=dict(fontsize=20))
+""" quantiles = [0.16,0.50,0.84]
+cfig = corner.corner(f3d.samples, bins = 60, weights=f3d.weights, title_quantiles=quantiles,quantiles=quantiles,show_titles=True,
+                     title_kwargs={"fontsize": 12}, labels=f3d.freepar_names, color='purple',plot_datapoints=True, 
+                     range=np.repeat(0.999,f3d.ndim),truths=truths, truth_color='cyan')
 
-#cfig.savefig(f'{output}/{model}/{model}_corner.pdf',bbox_inches='tight') """
+cfig.savefig(f'{output}/{model}/{model}_corner.pdf',bbox_inches='tight')  """
 
 # Plot the 2-D marginalized posteriors.
 quantiles = [0.16,0.50,0.84]
 cfig, caxes = dyplot.cornerplot(f3d.results,show_titles=True,title_quantiles=quantiles,
                                 quantiles=quantiles, color='purple',max_n_ticks=5, \
-                                labels=f3d.freepar_names, label_kwargs=dict(fontsize=20))
+                                labels=f3d.freepar_names, label_kwargs=dict(fontsize=20),thruths = truth, thruth_color='cyan')
 cfig.savefig(f'{output}/{model}/{model}_corner.pdf',bbox_inches='tight')
 
 # Saving samples

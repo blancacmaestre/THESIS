@@ -1,0 +1,21 @@
+# ELLPROF results for CGal_6_70_0.01
+#
+# Map units: u = JY/BEAM*KM/S
+# Pixel area: 169.00000 arcs2
+#
+# Columns 2-6  : ring statistics (sum, mean, median, standard deviation and median absolute deviation from the median) in map units (see above).
+# Column  7    : effective number of valid pixels within the ring.
+# Columns 8-10 : surface density, its error and face-on surface density (inclination corrected).
+# Columns 11   : effective number of blank pixels within the ring.
+# Columns 12-13: surface density and face-on surface density including area covered by blank pixels (total area: NPIX + NPIXBL).
+# Columns 14-16: (ONLY FOR HI DATA!) face-on (inclination corrected) number surface density and mass surface densities with two different techniques.
+#
+#  RADIUS       SUM      MEAN    MEDIAN    STDDEV       MAD      NPIX     SDENS    ERR_SD  SDENS_FO    NPIXBL   SDENSBL SDENSBL_FO  SDENS_FO  MASSDENS MASSDENS2 
+#  arcsec         u         u         u         u         u       pix   u/arcs2   u/arcs2   u/arcs2       pix   u/arcs2    u/arcs2  1E20/cm2  Msun/pc2  Msun/pc2 
+#
+   20.000 3.408e+01 4.009e+00 3.943e+00 4.310e-01 3.812e-01 8.500e+00 2.372e-02 2.550e-03 7.081e-03 0.000e+00 2.372e-02  7.081e-03 8.274e+00 6.627e+00 6.577e+00 
+   60.000 1.183e+02 4.380e+00 4.433e+00 4.507e-01 3.172e-01 2.700e+01 2.592e-02 2.667e-03 7.735e-03 0.000e+00 2.592e-02  7.735e-03 9.039e+00 7.240e+00 7.185e+00 
+  100.000 1.833e+02 4.215e+00 4.200e+00 4.764e-01 3.893e-01 4.350e+01 2.494e-02 2.819e-03 7.443e-03 0.000e+00 2.494e-02  7.443e-03 8.698e+00 6.967e+00 6.914e+00 
+  140.000 2.497e+02 3.901e+00 3.900e+00 4.634e-01 3.115e-01 6.400e+01 2.308e-02 2.742e-03 6.889e-03 0.000e+00 2.308e-02  6.889e-03 8.051e+00 6.448e+00 6.399e+00 
+  180.000 2.618e+02 3.336e+00 3.340e+00 4.516e-01 3.256e-01 7.850e+01 1.974e-02 2.672e-03 5.891e-03 0.000e+00 1.974e-02  5.891e-03 6.884e+00 5.514e+00 5.472e+00 
+  220.000 2.226e+02 2.283e+00 2.343e+00 6.448e-01 3.890e-01 9.750e+01 1.351e-02 3.815e-03 4.032e-03 1.500e+00 1.331e-02  3.971e-03 4.712e+00 3.774e+00 3.745e+00 

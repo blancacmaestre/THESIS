@@ -3,7 +3,7 @@
 # This way, we can override any other installed version and 
 # modify pyBBarolo without the need of reinstalling it every time
 import sys
-sys.path.insert(0,'/Users/blanca/Documents/TESIS/software/Bbarolo/BBarolo')
+sys.path.insert(0,'/home/user/Bbarolo')
 
 # This should give version 1.3.3dev!
 from pyBBarolo import version
@@ -46,9 +46,9 @@ def res_Gaussian(data,model,noise,mask,multiplier=1):
 
     data *= mask
     model = my_norm(model,data)
-    res = np.nansum((data-model)**2)
+    res = np.nansum((model-data)**2)
 
-    return multiplier*res/(noise*noise)
+    return multiplier*res/(2*(noise*noise))
 
 def res_abs(data,model,noise,mask,multiplier=1):
     """
@@ -129,13 +129,13 @@ class BayesianBBaroloMod(BayesianBBarolo):
         #res=res_Gaussian(model=model, data=data, noise=self.noise, mask=mask, multiplier=1)
 
         #Option D Gaussian residuals: no noise
-        res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1)
+        #res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1)
 
         #Option E Gaussian residuals: no noise, multiplied by 1000
         #res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1000)
 
         #Option F Gaussian residuals: cube noise, multiplied by 1000    
-        #res=res_Gaussian(model=model, data=data, noise=self.noise, mask=mask, multiplier=1000)
+        res=res_Gaussian(model=model, data=data, noise=self.noise, mask=mask, multiplier=1000)
 
 
         return res
@@ -143,21 +143,21 @@ class BayesianBBaroloMod(BayesianBBarolo):
 
 
 # Name of the FITS file to be fitted
-model = "CGal_5_70_0.01_D_3000"
-centre = 38.5
-fitsname = f"/home/user/THESIS/models/A_MODELS_new/new_PA/CGal_5_70_0.01/CGal_5_70_0.01.fits"
+model = "CGal_4_70_0.01_F_single_nautilus"
+centre = 25.5
+fitsname = f"/home/user/THESIS/models/A_MODELS_new/new_PA/CGal_4_70_0.01/CGal_4_70_0.01.fits"
 #freepar = ['inc_single']
 #freepar = ['vrot','vdisp']
-freepar = ['vrot','vdisp','inc_single','phi_single']
+freepar = ['vrot_single','vdisp_single','inc_single','phi_single']
 #Uncomment to fit the density
 #freepar = ['vrot','vdisp','dens','inc_single','phi_single']
-output = "/home/user/THESIS/tests_all_resolution/newPA2"
+output = "/home/user/THESIS/test_singles"
 
 # Creating an object for bayesian barolo
 f3d = BayesianBBaroloMod(fitsname)
 
 # Initializing rings. 
-f3d.init(radii=np.arange(24,240,48),xpos=centre,ypos=centre,vsys=0.0,\
+f3d.init(radii=np.arange(30,240,60),xpos=centre,ypos=centre,vsys=0.0,\
          vrot=100,vdisp=10,vrad=0,z0=30,inc=70,phi=0)
 
 # Here it is possible to give any other BBarolo parameter, for example to control
@@ -182,7 +182,7 @@ f3d.bounds['dens']  = [1,30] """
 
 
 
-""" f3d.priors['inc']["loc"]= [10]
+"""f3d.priors['inc']["loc"]= [10]
 f3d.priors['inc']["scale"]= [80]
 f3d.priors['phi']["loc"]= [10]
 f3d.priors['phi']["scale"]= [300]   """   
@@ -194,7 +194,7 @@ run_kwargs = dict()
 sample_kwargs = dict()
 
 # Running the fit with dynesty.
-f3d.compute(threads=8,useBBres=False,method='dynesty',dynamic=True,
+f3d.compute(threads=8,useBBres=False,method='nautilus',dynamic=True,
             freepar=freepar,run_kwargs=run_kwargs,sample_kwargs=sample_kwargs)
 
 print (f3d.params,f3d._log_likelihood(f3d.params))
@@ -210,17 +210,21 @@ with open(output_file_path, 'w') as f:
         f3d.write_bestmodel()
 
         # Print some statistics of the sample
-        f3d.print_stats()
+        #f3d.print_stats()
 
         # Print summary of results
-        f3d.results.summary()
+       #f3d.results.summary()
+       
+truths = [100,10,70,30]
+quantiles = [0.16,0.50,0.84]
+cfig = corner.corner(f3d.samples, bins = 30, weights=f3d.weights, title_quantiles=quantiles,quantiles=quantiles,show_titles=True,
+                     title_kwargs={"fontsize": 12}, labels=f3d.freepar_names, color='purple',plot_datapoints=False, 
+                     range=np.repeat(0.999,f3d.ndim),truths=truths, truth_color='cyan')
 
-#corner.corner(
-#    f3d.samples, weights=f3d.weights, labels=f3d.freepar_names, color='purple',
-#    plot_datapoints=False, label_kwargs=dict(fontsize=20))
+cfig.savefig(f'{output}/{model}/{model}_corner.pdf',bbox_inches='tight')
+np.save("nautilus_samples.npy", f3d.samples)
 
-
-# Plot the 2-D marginalized posteriors.
+""" # Plot the 2-D marginalized posteriors.
 quantiles = [0.16,0.50,0.84]
 cfig, caxes = dyplot.cornerplot(f3d.results,show_titles=True,truth_color='black',title_quantiles=quantiles,
                                 quantiles=quantiles, color='purple',max_n_ticks=5, \
@@ -233,7 +237,7 @@ tfig, axes = dyplot.traceplot(f3d.results,
                              connect_highlight=range(5))
 tfig.savefig(f'{output}/{model}/{model}_trace.pdf',bbox_inches='tight')
 # Saving samples
-np.save("dynesty_samples.npy", f3d.results.samples)
+np.save("dynesty_samples.npy", f3d.results.samples)  """
 
 del f3d
 gc.collect()

@@ -1,0 +1,20 @@
+
+Writing the best model to output directory ... Done!
+
+Best-fit parameters (log_likelihood = -356.21):
+        vrot =     99.453     -0.262     +0.294
+       vdisp =      9.116     -0.221     +0.209
+         inc =     69.834     -0.401     +0.242
+         phi =     30.336     -0.185     +0.214
+
+Maximum logl: -352.61151123046875 at:
+        vrot =     99.497 
+       vdisp =      9.225 
+         inc =     70.231 
+         phi =     30.851 
+Summary
+=======
+niter: 150603
+ncall: 9352102
+eff(%):  1.610
+logz: -377.124 +/-  0.066

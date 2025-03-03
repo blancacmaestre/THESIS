@@ -12,21 +12,21 @@ from tools import calculate_SNR
 
 
 BBmain = "/home/user/Bbarolo/BBarolo"
-output = "/home/user/THESIS/models/A_MODELS_new/noise/"
+output = "/home/user/THESIS/models/A_MODELS_new/same_rings/"
 
 # General parameters for datacube
-xysize, vsize = 51,64   # Number of pixels/channels   #Value in model1 = 51,128  #value in ngc2403 75, 62
-pixsize   =  20 # Size of pixels (arcsec)             #Value in model1 = 20      #value in ngc2403 32 
+xysize, vsize = 77,64   # Number of pixels/channels   #Value in model1 = 51,128  #value in ngc2403 75, 62
+pixsize   =  13 # Size of pixels (arcsec)             #Value in model1 = 20      #value in ngc2403 32 
 chwidth   =  10   # Channel width (km/s)                #Value in model1 = 5       #value in ngc2403 -5.12 
-beamFWHM  = 60  # Beam size (arcsec)                  #Value in model1 = 60      #value in ngc2403 180 or 360
-modname   = "CGal_4_70_0.001"  # Name of the model           
-noiserms  = 0.001   # RMS noise in Jy/beam            #Value in model1 = 0.01     #value in ngc2403 0.0015
+beamFWHM  = 40  # Beam size (arcsec)                  #Value in model1 = 60      #value in ngc2403 180 or 360
+modname   = "CGal_6_70_0.01"  # Name of the model           
+noiserms  = 0.01   # RMS noise in Jy/beam            #Value in model1 = 0.01     #value in ngc2403 0.0015
 
 
 # Basic parameters of the model
 
 radmax  = 240
-radii   = np.arange(0,radmax,pixsize)
+radii   = np.arange(0,radmax,beamFWHM)
 #dens   = 20*np.exp(-radii/100-50/(0.5*radii+50))
 #vrot   = 2./np.pi*150*np.arctan(radii/30.)
 dens    = np.full(len(radii),10)
