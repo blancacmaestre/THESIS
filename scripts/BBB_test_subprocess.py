@@ -231,7 +231,7 @@ run_kwargs = dict()
 sample_kwargs = dict()
 
 # Running the fit with dynesty.
-f3d.compute(threads=8,useBBres=False,method='dynesty',dynamic=True,
+f3d.compute(threads=8,useBBres=False,method='dynamic',dynamic=True,
             freepar=freepar,run_kwargs=run_kwargs,sample_kwargs=sample_kwargs)
 
 print (f3d.params,f3d._log_likelihood(f3d.params))
