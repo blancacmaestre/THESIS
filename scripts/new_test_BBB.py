@@ -46,9 +46,9 @@ def res_Gaussian(data,model,noise,mask,multiplier=1):
 
     data *= mask
     model = my_norm(model,data)
-    res = -np.nansum((model-data)**2)
+    res = np.nansum((model-data)**2)
 
-    return multiplier*res/(noise*noise)
+    return multiplier*res/(2*noise*noise)
 
 def res_abs(data,model,noise,mask,multiplier=1):
     """
@@ -57,11 +57,9 @@ def res_abs(data,model,noise,mask,multiplier=1):
     
     data *= mask
     model = my_norm(model,data)
-    res = -np.nansum(np.abs(data-model))
+    res = np.nansum(np.abs(data-model))
 
     return multiplier*res/noise
-
-
 
 
 
@@ -127,32 +125,31 @@ class BayesianBBaroloMod(BayesianBBarolo):
         #res=res_abs(model=model, data=data, noise=self.noise, mask=mask, multiplier=1000)
 
         #Option C Standard Gaussian residuals: cube noise,
-        #res=res_Gaussian(model=model, data=data, noise=self.noise, mask=mask, multiplier=1)
+        res=res_Gaussian(model=model, data=data, noise=self.noise, mask=mask, multiplier=1)
 
         #Option D Gaussian residuals: no noise
         #res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1)
 
         #Option E Gaussian residuals: no noise, multiplied by 1000
-        res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1000)
+        #res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1000)
 
         #Option F Gaussian residuals: cube noise, multiplied by 1000    
         #res=res_Gaussian(model=model, data=data, noise=self.noise, mask=mask, multiplier=1000)
-
 
         return res
     
 
 
 # Name of the FITS file to be fitted
-model = "CGal_4_70_0.01_E_single_dy_6000"
+model = "CGal_4_70_0.01_C_single_dy_8000"
 centre = 25.5
-fitsname = f"/home/user/THESIS/models/A_MODELS_new/new_PA/CGal_4_70_0.01/CGal_4_70_0.01.fits"
+fitsname = f"/home/user/THESIS/models/A_MODELS_new/noise/CGal_4_70_0.01/CGal_4_70_0.01.fits"
 #freepar = ['inc_single']
 #freepar = ['vrot','vdisp']
 freepar = ['vrot_single','vdisp_single','inc_single','phi_single']
 #Uncomment to fit the density
 #freepar = ['vrot','vdisp','dens','inc_single','phi_single']
-output = "/home/user/THESIS/test_singles_thesis"
+output = "/home/user/THESIS/test_singles_thesis/dynesty"
 
 # Creating an object for bayesian barolo
 f3d = BayesianBBaroloMod(fitsname)
@@ -180,14 +177,10 @@ f3d.bounds['ypos']  = [20,30]
 f3d.bounds['vsys']  = [-20,20]
 f3d.bounds['dens']  = [1,30] """
 
-
-
-
 """f3d.priors['inc']["loc"]= [10]
 f3d.priors['inc']["scale"]= [80]
 f3d.priors['phi']["loc"]= [10]
 f3d.priors['phi']["scale"]= [300]   """   
-
 
 # Keywords to be passed to the sample run
 run_kwargs = dict()
@@ -195,8 +188,9 @@ run_kwargs = dict()
 sample_kwargs = dict()
 
 # Running the fit with dynesty.
-f3d.compute(threads=8,useBBres=False,method='dynesty',dynamic=True,
-            freepar=freepar,run_kwargs=run_kwargs ,sample_kwargs={"live_init":6000})
+f3d.compute(threads=8,useBBres=False,method='dynesty', dynamic=True,
+            freepar=freepar,run_kwargs=run_kwargs, sample_kwargs=sample_kwargs)
+
 
 print (f3d.params,f3d._log_likelihood(f3d.params))
 
@@ -223,7 +217,8 @@ cfig = corner.corner(f3d.samples, bins = 30, weights=f3d.weights, title_quantile
                      range=np.repeat(0.999,f3d.ndim),truths=truths, truth_color='cyan')
 
 cfig.savefig(f'{output}/{model}/{model}_corner.pdf',bbox_inches='tight')
-np.save(f"{output}/{model}/nautilus_samples.npy", f3d.samples) """
+np.save(f"{output}/{model}/nautilus_samples.npy", f3d.samples)
+ """
 
 # Plot the 2-D marginalized posteriors.
 quantiles = [0.16,0.50,0.84]
@@ -238,7 +233,7 @@ tfig, axes = dyplot.traceplot(f3d.results,
                              connect_highlight=range(5))
 tfig.savefig(f'{output}/{model}/{model}_trace.pdf',bbox_inches='tight')
 # Saving samples
-np.save(f"{output}/{model}/dynesty_samples.npy", f3d.results.samples)  
+np.save(f"{output}/{model}/dynesty_samples.npy", f3d.results.samples) 
 
 del f3d
 gc.collect()
