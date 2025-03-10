@@ -156,6 +156,7 @@ parser.add_argument('--beamsize', type=str, required=True, help='beamsize parame
 parser.add_argument('--centre', type=str, required=True, help='positiontion centre of the galaxy')
 parser.add_argument('--halfbeam', type=str, required=True, help='half beamsize')
 parser.add_argument('--truth', type=str, required=True, help='truth values')
+parser.add_argument('--thick', type=str, required=True, help='thick parameter')
 # Parse arguments
 args = parser.parse_args()
 
@@ -173,6 +174,7 @@ fitsname = args.fitsname
 centre = eval(args.centre)
 halfbeam = eval(args.halfbeam)
 truth = eval(args.truth)
+thick = eval(args.thick)
 
 # Print the arguments to verify
 print(f" mask: {mask}, model: {model}, beamsize: {beamsize}, fitsname: {fitsname}, centre: {centre}, halfbeam: {halfbeam}")  
@@ -185,7 +187,7 @@ model = model
 fitsname = fitsname
 freepar = ['vrot','vdisp','inc_single','phi_single']
 #freepar = ['vrot','vdisp','dens','inc_single','phi_single']
-output = "/home/user/THESIS/tests_same_rings_E_2000"
+output = "/home/user/THESIS/tests_thickness"
 
 
 # Creating an object for bayesian barolo
@@ -196,7 +198,7 @@ radii=np.arange(halfbeam,240,beamsize)
 
 # Initializing rings. 
 f3d.init(radii=radii,xpos=centre,ypos=centre,vsys=0.0,\
-         vrot=100,vdisp=10,vrad=0,z0=30,inc=70,phi=0)
+         vrot=100,vdisp=10,vrad=0,z0=thick,inc=70,phi=0)
 
 
 
@@ -231,7 +233,7 @@ run_kwargs = dict()
 sample_kwargs = dict()
 
 # Running the fit with dynesty.
-f3d.compute(threads=8,useBBres=False,method='dynamic',dynamic=True,
+f3d.compute(threads=8,useBBres=False,method='nautilus',dynamic=True,
             freepar=freepar,run_kwargs=run_kwargs,sample_kwargs=sample_kwargs)
 
 print (f3d.params,f3d._log_likelihood(f3d.params))
@@ -252,18 +254,21 @@ with open(output_file_path, 'w') as f:
         print(f3d.samples)
 
         # Print summary of results
-        f3d.results.summary()
+        print(f3d.params)
         #print(f3d.params)
 
 
-""" quantiles = [0.16,0.50,0.84]
+quantiles = [0.16,0.50,0.84]
 cfig = corner.corner(f3d.samples, bins = 60, weights=f3d.weights, title_quantiles=quantiles,quantiles=quantiles,show_titles=True,
                      title_kwargs={"fontsize": 12}, labels=f3d.freepar_names, color='purple',plot_datapoints=True, 
-                     range=np.repeat(0.999,f3d.ndim),truths=truths, truth_color='cyan')
+                     range=np.repeat(0.999,f3d.ndim),truths=truth, truth_color='cyan')
 
-cfig.savefig(f'{output}/{model}/{model}_corner.pdf',bbox_inches='tight')  """
+cfig.savefig(f'{output}/{model}/{model}_corner.pdf',bbox_inches='tight')
+np.save(f"{output}/{model}/nautilus_samples.npy", f3d.samples)
+np.save(f"{output}/{model}/nautilus_weights.npy", f3d.weights)
+np.save(f"{output}/{model}/nautilus_params.npy", f3d.params)
 
-# Plot the 2-D marginalized posteriors.
+""" # Plot the 2-D marginalized posteriors.
 quantiles = [0.16,0.50,0.84]
 cfig, caxes = dyplot.cornerplot(f3d.results,show_titles=True,title_quantiles=quantiles,
                                 quantiles=quantiles, color='purple',max_n_ticks=5, \
@@ -277,7 +282,62 @@ tfig, axes = dyplot.traceplot(f3d.results,
                              truth_color='black', show_titles=True,
                              trace_cmap='viridis', connect=True,
                              connect_highlight=range(5))
-tfig.savefig(f'{output}/{model}/{model}_trace.pdf',bbox_inches='tight')
+tfig.savefig(f'{output}/{model}/{model}_trace.pdf',bbox_inches='tight')"""
+
+
+#if method == "dynesty":
+""" samples = f3d.results.samples #these are all the samples that dynesty got, the last array are the parameters
+weights = np.exp(f3d.results.logwt - f3d.results.logz[-1])
+params = np.average(samples, axis=0, weights=weights) #mean of values  """
+
+#if method == "nautilus":
+samples = f3d.samples
+weights = f3d.weights
+params = f3d.params
+
+rad_mc = f3d._inri.r['radii']  # Get the radii array
+labs = f3d.freepar_names
+
+ra, pp, err_up, err_low = np.zeros(shape=(4, len(params)))
+# Adjust how we index rad_mc for vrot and vdisp parameters, using modulo if needed
+for i in range(len(params)):
+    mcmc = np.percentile(samples[:, i], [15.865, 50, 84.135])
+    q = np.diff(mcmc)
+    txt = "%10s = %10.3f %+10.3f %+10.3f" % (labs[i], mcmc[1], -q[0], q[1])
+    
+    pp[i] = mcmc[1]
+    err_low[i] = q[0]
+    err_up[i] = q[1]
+    
+    # For vrot and vdisp parameters, assign the radius values
+    if labs[i].startswith("vrot") or labs[i].startswith("vdisp"):
+        # Use modulo indexing to ensure we don't go out of bounds (repeat the radii if necessary)
+        idx = i % len(rad_mc)  # Ensure the index is within bounds
+        ra[i] = rad_mc[idx]
+    else:
+        ra[i] = None  # No radius for other parameters
+
+output_file = "errors.txt"
+with open(f"{output}/{model}/{output_file}", "w") as file:
+    file.write(f"#{'Parameter':<15}{'Median':<15}{'Error_Low':<15}{'Error_Up':<15}{'Radius':<15}\n")
+    
+    for i in range(len(params)):
+
+        # Check if the parameter is vrot or vdisp and write the radius
+        if labs[i].startswith("vrot") or labs[i].startswith("vdisp"):
+
+            # If the radius is None, print 'N/A' for the radius
+            radius_str = f"{ra[i]:<15.6f}" if ra[i] is not None else "N/A"
+            file.write(f"{labs[i]:<15}{pp[i]:<15.6f}{err_low[i]:<15.6f}{err_up[i]:<15.6f}{radius_str}\n")
+        else:
+            # Write the parameters without radius (vsys, inc, pa, xpos, ypos, etc.)
+            file.write(f"{labs[i]:<15}{pp[i]:<15.6f}{err_low[i]:<15.6f}{err_up[i]:<15.6f}{'N/A':<15}\n")
+
+with open(f"{output}/{model}/{output_file}", "r") as file:
+    content = file.read()
+print(content)
+
+print(f"Results saved to {output_file}")
 
 del f3d
-gc.collect()
+gc.collect() 

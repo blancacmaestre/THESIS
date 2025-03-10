@@ -125,13 +125,13 @@ class BayesianBBaroloMod(BayesianBBarolo):
         #res=res_abs(model=model, data=data, noise=self.noise, mask=mask, multiplier=1000)
 
         #Option C Standard Gaussian residuals: cube noise,
-        res=res_Gaussian(model=model, data=data, noise=self.noise, mask=mask, multiplier=1)
+        #res=res_Gaussian(model=model, data=data, noise=self.noise, mask=mask, multiplier=1)
 
         #Option D Gaussian residuals: no noise
         #res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1)
 
         #Option E Gaussian residuals: no noise, multiplied by 1000
-        #res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1000)
+        res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1000)
 
         #Option F Gaussian residuals: cube noise, multiplied by 1000    
         #res=res_Gaussian(model=model, data=data, noise=self.noise, mask=mask, multiplier=1000)
@@ -141,22 +141,22 @@ class BayesianBBaroloMod(BayesianBBarolo):
 
 
 # Name of the FITS file to be fitted
-model = "CGal_4_70_0.01_C_single_dy_8000"
+model = "CGal_4_70_0.01_E_nau_density_2"
 centre = 25.5
-fitsname = f"/home/user/THESIS/models/A_MODELS_new/noise/CGal_4_70_0.01/CGal_4_70_0.01.fits"
+fitsname = f"/home/user/THESIS/MODELS_THESIS/CGal_4_70_0.01/CGal_4_70_0.01.fits"
 #freepar = ['inc_single']
 #freepar = ['vrot','vdisp']
-freepar = ['vrot_single','vdisp_single','inc_single','phi_single']
+freepar = ['vrot','vdisp','dens_single','inc_single','phi_single']
 #Uncomment to fit the density
 #freepar = ['vrot','vdisp','dens','inc_single','phi_single']
-output = "/home/user/THESIS/test_singles_thesis/dynesty"
+output = "/home/user/THESIS/tests_thesis"
 
 # Creating an object for bayesian barolo
 f3d = BayesianBBaroloMod(fitsname)
 
 # Initializing rings. 
 f3d.init(radii=np.arange(30,240,60),xpos=centre,ypos=centre,vsys=0.0,\
-         vrot=100,vdisp=10,vrad=0,z0=30,inc=70,phi=0)
+         vrot=100,vdisp=10,vrad=0,z0=30,inc=70,phi=0, dens =10)
 
 # Here it is possible to give any other BBarolo parameter, for example to control
 # the mask, linear, bweight, cdens, wfunc, etc...
@@ -188,7 +188,7 @@ run_kwargs = dict()
 sample_kwargs = dict()
 
 # Running the fit with dynesty.
-f3d.compute(threads=8,useBBres=False,method='dynesty', dynamic=True,
+f3d.compute(threads=8,useBBres=False,method='nautilus', dynamic=True,
             freepar=freepar,run_kwargs=run_kwargs, sample_kwargs=sample_kwargs)
 
 
@@ -205,22 +205,25 @@ with open(output_file_path, 'w') as f:
         f3d.write_bestmodel()
 
         # Print some statistics of the sample
-        f3d.print_stats()
+        #f3d.print_stats()
+        print(f3d.samples)
 
         # Print summary of results
-        f3d.results.summary()
+        #f3d.results.summary()
+        print(f3d.params)
+
+np.save(f"{output}/{model}/nautilus_samples.npy", f3d.samples)
        
-""" truths = [100,10,70,30]
+truths = [100,100,100,100,10,10,10,10,10,70,30]
 quantiles = [0.16,0.50,0.84]
-cfig = corner.corner(f3d.samples, bins = 30, weights=f3d.weights, title_quantiles=quantiles,quantiles=quantiles,show_titles=True,
-                     title_kwargs={"fontsize": 12}, labels=f3d.freepar_names, color='purple',plot_datapoints=False, 
+cfig = corner.corner(f3d.samples, bins = 60, weights=f3d.weights, title_quantiles=quantiles,quantiles=quantiles,show_titles=True,
+                     title_kwargs={"fontsize": 12}, labels=f3d.freepar_names, color='purple',plot_datapoints=True, 
                      range=np.repeat(0.999,f3d.ndim),truths=truths, truth_color='cyan')
 
 cfig.savefig(f'{output}/{model}/{model}_corner.pdf',bbox_inches='tight')
-np.save(f"{output}/{model}/nautilus_samples.npy", f3d.samples)
- """
 
-# Plot the 2-D marginalized posteriors.
+
+""" # Plot the 2-D marginalized posteriors.
 quantiles = [0.16,0.50,0.84]
 cfig, caxes = dyplot.cornerplot(f3d.results,show_titles=True,truth_color='black',title_quantiles=quantiles,
                                 quantiles=quantiles, color='purple',max_n_ticks=5, \
@@ -233,7 +236,55 @@ tfig, axes = dyplot.traceplot(f3d.results,
                              connect_highlight=range(5))
 tfig.savefig(f'{output}/{model}/{model}_trace.pdf',bbox_inches='tight')
 # Saving samples
-np.save(f"{output}/{model}/dynesty_samples.npy", f3d.results.samples) 
+np.save(f"{output}/{model}/dynesty_samples.npy", f3d.results.samples)  """
+
+samples = f3d.samples
+weights = f3d.weights
+params = f3d.params
+
+rad_mc = f3d._inri.r['radii']  # Get the radii array
+labs = f3d.freepar_names
+
+ra, pp, err_up, err_low = np.zeros(shape=(4, len(params)))
+# Adjust how we index rad_mc for vrot and vdisp parameters, using modulo if needed
+for i in range(len(params)):
+    mcmc = np.percentile(samples[:, i], [15.865, 50, 84.135])
+    q = np.diff(mcmc)
+    txt = "%10s = %10.3f %+10.3f %+10.3f" % (labs[i], mcmc[1], -q[0], q[1])
+    
+    pp[i] = mcmc[1]
+    err_low[i] = q[0]
+    err_up[i] = q[1]
+    
+    # For vrot and vdisp parameters, assign the radius values
+    if labs[i].startswith("vrot") or labs[i].startswith("vdisp"):
+        # Use modulo indexing to ensure we don't go out of bounds (repeat the radii if necessary)
+        idx = i % len(rad_mc)  # Ensure the index is within bounds
+        ra[i] = rad_mc[idx]
+    else:
+        ra[i] = None  # No radius for other parameters
+
+output_file = "errors.txt"
+with open(f"{output}/{model}/{output_file}", "w") as file:
+    file.write(f"#{'Parameter':<15}{'Median':<15}{'Error_Low':<15}{'Error_Up':<15}{'Radius':<15}\n")
+    
+    for i in range(len(params)):
+
+        # Check if the parameter is vrot or vdisp and write the radius
+        if labs[i].startswith("vrot") or labs[i].startswith("vdisp"):
+
+            # If the radius is None, print 'N/A' for the radius
+            radius_str = f"{ra[i]:<15.6f}" if ra[i] is not None else "N/A"
+            file.write(f"{labs[i]:<15}{pp[i]:<15.6f}{err_low[i]:<15.6f}{err_up[i]:<15.6f}{radius_str}\n")
+        else:
+            # Write the parameters without radius (vsys, inc, pa, xpos, ypos, etc.)
+            file.write(f"{labs[i]:<15}{pp[i]:<15.6f}{err_low[i]:<15.6f}{err_up[i]:<15.6f}{'N/A':<15}\n")
+
+with open(f"{output}/{model}/{output_file}", "r") as file:
+    content = file.read()
+print(content)
+
+print(f"Results saved to {output_file}")
 
 del f3d
 gc.collect()
