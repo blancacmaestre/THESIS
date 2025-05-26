@@ -141,15 +141,15 @@ class BayesianBBaroloMod(BayesianBBarolo):
 
 
 # Name of the FITS file to be fitted
-model = "CGal_4_70_0.01_E_nau_density_2"
+model = "CGal_4_70_0.01_E_dynesty_single"
 centre = 25.5
 fitsname = f"/home/user/THESIS/MODELS_THESIS/CGal_4_70_0.01/CGal_4_70_0.01.fits"
 #freepar = ['inc_single']
 #freepar = ['vrot','vdisp']
-freepar = ['vrot','vdisp','dens_single','inc_single','phi_single']
+freepar = ['vrot_single','vdisp_single','inc_single','phi_single']
 #Uncomment to fit the density
 #freepar = ['vrot','vdisp','dens','inc_single','phi_single']
-output = "/home/user/THESIS/tests_thesis"
+output = "/home/user/THESIS/new_tests_single/tests_dynesty_single"
 
 # Creating an object for bayesian barolo
 f3d = BayesianBBaroloMod(fitsname)
@@ -188,7 +188,7 @@ run_kwargs = dict()
 sample_kwargs = dict()
 
 # Running the fit with dynesty.
-f3d.compute(threads=8,useBBres=False,method='nautilus', dynamic=True,
+f3d.compute(threads=8,useBBres=False,method='dynesty', dynamic=True,
             freepar=freepar,run_kwargs=run_kwargs, sample_kwargs=sample_kwargs)
 
 
@@ -205,38 +205,50 @@ with open(output_file_path, 'w') as f:
         f3d.write_bestmodel()
 
         # Print some statistics of the sample
-        #f3d.print_stats()
-        print(f3d.samples)
+        f3d.print_stats()
+        #print(f3d.samples)
 
         # Print summary of results
-        #f3d.results.summary()
-        print(f3d.params)
+        f3d.results.summary()
+        #print(f3d.params)
 
-np.save(f"{output}/{model}/nautilus_samples.npy", f3d.samples)
+""" np.save(f"{output}/{model}/nautilus_samples.npy", f3d.samples)
        
-truths = [100,100,100,100,10,10,10,10,10,70,30]
 quantiles = [0.16,0.50,0.84]
 cfig = corner.corner(f3d.samples, bins = 60, weights=f3d.weights, title_quantiles=quantiles,quantiles=quantiles,show_titles=True,
-                     title_kwargs={"fontsize": 12}, labels=f3d.freepar_names, color='purple',plot_datapoints=True, 
-                     range=np.repeat(0.999,f3d.ndim),truths=truths, truth_color='cyan')
+                     title_kwargs={"fontsize": 18}, label_kwargs={"fontsize": 16}, labels=f3d.freepar_names, color='purple',plot_datapoints=True, 
+                     range=np.repeat(0.999,f3d.ndim))
 
 cfig.savefig(f'{output}/{model}/{model}_corner.pdf',bbox_inches='tight')
+np.save(f"{output}/{model}/nautilus_samples.npy", f3d.samples)
+np.save(f"{output}/{model}/nautilus_weights.npy", f3d.weights)
+np.save(f"{output}/{model}/nautilus_params.npy", f3d.params)
+with open(f"{output}/{model}/nautilus_labels.txt", "w") as f:
+    f.write(str(f3d.freepar_names))
+with open(f"{output}/{model}/nautilus_ndim.txt", "w") as f:
+    f.write(str(f3d.ndim)) """
 
 
-""" # Plot the 2-D marginalized posteriors.
+# Plot the 2-D marginalized posteriors.
 quantiles = [0.16,0.50,0.84]
-cfig, caxes = dyplot.cornerplot(f3d.results,show_titles=True,truth_color='black',title_quantiles=quantiles,
+cfig, caxes = dyplot.cornerplot(f3d.results,show_titles=True,title_quantiles=quantiles,
                                 quantiles=quantiles, color='purple',max_n_ticks=5, \
                                 labels=f3d.freepar_names, label_kwargs=dict(fontsize=20))
 cfig.savefig(f'{output}/{model}/{model}_corner.pdf',bbox_inches='tight')
 
-tfig, axes = dyplot.traceplot(f3d.results,
-                             truth_color='black', show_titles=True,
+tfig, axes = dyplot.traceplot(f3d.results, show_titles=True,
                              trace_cmap='viridis', connect=True,
                              connect_highlight=range(5))
+
 tfig.savefig(f'{output}/{model}/{model}_trace.pdf',bbox_inches='tight')
 # Saving samples
-np.save(f"{output}/{model}/dynesty_samples.npy", f3d.results.samples)  """
+np.save(f"{output}/{model}/dynesty_samples.npy", f3d.results.samples)
+np.save(f"{output}/{model}/dynesty_weights.npy", f3d.weights)
+np.save(f"{output}/{model}/dynesty_params.npy", f3d.params)
+with open(f"{output}/{model}/dynesty_labels.txt", "w") as f:
+    f.write(str(f3d.freepar_names))
+with open(f"{output}/{model}/dynesty_ndim.txt", "w") as f:
+    f.write(str(f3d.ndim))
 
 samples = f3d.samples
 weights = f3d.weights

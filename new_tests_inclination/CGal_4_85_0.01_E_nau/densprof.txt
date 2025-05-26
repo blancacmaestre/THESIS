@@ -1,0 +1,19 @@
+# ELLPROF results for CGal_4_85_0.01
+#
+# Map units: u = JY/BEAM*KM/S
+# Pixel area: 400.00000 arcs2
+#
+# Columns 2-6  : ring statistics (sum, mean, median, standard deviation and median absolute deviation from the median) in map units (see above).
+# Column  7    : effective number of valid pixels within the ring.
+# Columns 8-10 : surface density, its error and face-on surface density (inclination corrected).
+# Columns 11   : effective number of blank pixels within the ring.
+# Columns 12-13: surface density and face-on surface density including area covered by blank pixels (total area: NPIX + NPIXBL).
+# Columns 14-16: (ONLY FOR HI DATA!) face-on (inclination corrected) number surface density and mass surface densities with two different techniques.
+#
+#  RADIUS       SUM      MEAN    MEDIAN    STDDEV       MAD      NPIX     SDENS    ERR_SD  SDENS_FO    NPIXBL   SDENSBL SDENSBL_FO  SDENS_FO  MASSDENS MASSDENS2 
+#  arcsec         u         u         u         u         u       pix   u/arcs2   u/arcs2   u/arcs2       pix   u/arcs2    u/arcs2  1E20/cm2  Msun/pc2  Msun/pc2 
+#
+   30.000 2.097e+01 4.195e+01 4.195e+01 9.222e-01 6.521e-01 5.000e-01 1.049e-01 2.305e-03 2.349e-03 0.000e+00 1.049e-01  2.349e-03 2.888e+00 2.313e+00 2.295e+00 
+   90.000 8.079e+01 4.039e+01 3.991e+01 2.385e+00 2.003e+00 2.000e+00 1.010e-01 5.962e-03 2.262e-03 0.000e+00 1.010e-01  2.262e-03 2.781e+00 2.227e+00 2.210e+00 
+  150.000 1.055e+02 3.515e+01 3.667e+01 7.568e+00 5.900e+00 3.000e+00 8.788e-02 1.892e-02 1.969e-03 0.000e+00 8.788e-02  1.969e-03 2.420e+00 1.938e+00 1.924e+00 
+  210.000 1.033e+02 2.952e+01 3.378e+01 1.319e+01 6.854e+00 3.500e+00 7.381e-02 3.298e-02 1.653e-03 0.000e+00 7.381e-02  1.653e-03 2.033e+00 1.628e+00 1.616e+00 

@@ -155,7 +155,6 @@ parser.add_argument('--fitsname', type=str, required=True, help='Fits name')
 parser.add_argument('--beamsize', type=str, required=True, help='beamsize parameter')
 parser.add_argument('--centre', type=str, required=True, help='positiontion centre of the galaxy')
 parser.add_argument('--halfbeam', type=str, required=True, help='half beamsize')
-parser.add_argument('--truth', type=str, required=True, help='truth values')
 parser.add_argument('--thick', type=str, required=True, help='thick parameter')
 # Parse arguments
 args = parser.parse_args()
@@ -173,11 +172,10 @@ beamsize = eval(args.beamsize)
 fitsname = args.fitsname
 centre = eval(args.centre)
 halfbeam = eval(args.halfbeam)
-truth = eval(args.truth)
 thick = eval(args.thick)
 
 # Print the arguments to verify
-print(f" mask: {mask}, model: {model}, beamsize: {beamsize}, fitsname: {fitsname}, centre: {centre}, halfbeam: {halfbeam}")  
+print(f" mask: {mask}, model: {model}, beamsize: {beamsize}, fitsname: {fitsname}, centre: {centre}, halfbeam: {halfbeam}, thick: {thick}")  
 #vrot: {vrot}, vdisp: {vdisp}, inc: {inc}, phi: {phi}, dens: {dens}, 
 
 # Your existing code here
@@ -187,7 +185,7 @@ model = model
 fitsname = fitsname
 freepar = ['vrot','vdisp','inc_single','phi_single']
 #freepar = ['vrot','vdisp','dens','inc_single','phi_single']
-output = "/home/user/THESIS/tests_thickness"
+output = "/home/user/THESIS/new_tests_error"
 
 
 # Creating an object for bayesian barolo
@@ -260,13 +258,19 @@ with open(output_file_path, 'w') as f:
 
 quantiles = [0.16,0.50,0.84]
 cfig = corner.corner(f3d.samples, bins = 60, weights=f3d.weights, title_quantiles=quantiles,quantiles=quantiles,show_titles=True,
-                     title_kwargs={"fontsize": 12}, labels=f3d.freepar_names, color='purple',plot_datapoints=True, 
-                     range=np.repeat(0.999,f3d.ndim),truths=truth, truth_color='cyan')
+                     title_kwargs={"fontsize": 18}, label_kwargs={"fontsize": 16}, labels=f3d.freepar_names, color='purple',plot_datapoints=True, 
+                     range=np.repeat(0.999,f3d.ndim))
 
+# The code is saving a figure named `{model}_corner.pdf` in the specified output directory with the
+# bounding box tightly fitting around the figure.
 cfig.savefig(f'{output}/{model}/{model}_corner.pdf',bbox_inches='tight')
 np.save(f"{output}/{model}/nautilus_samples.npy", f3d.samples)
 np.save(f"{output}/{model}/nautilus_weights.npy", f3d.weights)
 np.save(f"{output}/{model}/nautilus_params.npy", f3d.params)
+with open(f"{output}/{model}/nautilus_labels.txt", "w") as f:
+    f.write(str(f3d.freepar_names))
+with open(f"{output}/{model}/nautilus_ndim.txt", "w") as f:
+    f.write(str(f3d.ndim))
 
 """ # Plot the 2-D marginalized posteriors.
 quantiles = [0.16,0.50,0.84]
