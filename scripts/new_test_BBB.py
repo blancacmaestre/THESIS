@@ -122,7 +122,7 @@ class BayesianBBaroloMod(BayesianBBarolo):
         #res=res_abs(model=model, data=data, noise=1, mask=mask, multiplier=1000)
 
         #Option B Standard absolute residuals: cube noise, residual muplitied by 1000 as done before
-        #res=res_abs(model=model, data=data, noise=self.noise, mask=mask, multiplier=1000)
+        res=res_abs(model=model, data=data, noise=self.noise, mask=mask, multiplier=1000)
 
         #Option C Standard Gaussian residuals: cube noise,
         #res=res_Gaussian(model=model, data=data, noise=self.noise, mask=mask, multiplier=1)
@@ -131,7 +131,7 @@ class BayesianBBaroloMod(BayesianBBarolo):
         #res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1)
 
         #Option E Gaussian residuals: no noise, multiplied by 1000
-        res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1000)
+        #res=res_Gaussian(model=model, data=data, noise=1, mask=mask, multiplier=1000)
 
         #Option F Gaussian residuals: cube noise, multiplied by 1000    
         #res=res_Gaussian(model=model, data=data, noise=self.noise, mask=mask, multiplier=1000)
@@ -141,7 +141,7 @@ class BayesianBBaroloMod(BayesianBBarolo):
 
 
 # Name of the FITS file to be fitted
-model = "CGal_4_70_0.01_E_dynesty_single"
+model = "CGal_4_70_0.01_B_nautilus_single"
 centre = 25.5
 fitsname = f"/home/user/THESIS/MODELS_THESIS/CGal_4_70_0.01/CGal_4_70_0.01.fits"
 #freepar = ['inc_single']
@@ -149,7 +149,7 @@ fitsname = f"/home/user/THESIS/MODELS_THESIS/CGal_4_70_0.01/CGal_4_70_0.01.fits"
 freepar = ['vrot_single','vdisp_single','inc_single','phi_single']
 #Uncomment to fit the density
 #freepar = ['vrot','vdisp','dens','inc_single','phi_single']
-output = "/home/user/THESIS/new_tests_single/tests_dynesty_single"
+output = "/home/user/THESIS/new_tests_single/tests_nautilus_single"
 
 # Creating an object for bayesian barolo
 f3d = BayesianBBaroloMod(fitsname)
@@ -188,7 +188,7 @@ run_kwargs = dict()
 sample_kwargs = dict()
 
 # Running the fit with dynesty.
-f3d.compute(threads=8,useBBres=False,method='dynesty', dynamic=True,
+f3d.compute(threads=8,useBBres=False,method='nautilus', dynamic=True,
             freepar=freepar,run_kwargs=run_kwargs, sample_kwargs=sample_kwargs)
 
 
@@ -205,14 +205,13 @@ with open(output_file_path, 'w') as f:
         f3d.write_bestmodel()
 
         # Print some statistics of the sample
-        f3d.print_stats()
+        #f3d.print_stats()
         #print(f3d.samples)
 
         # Print summary of results
-        f3d.results.summary()
-        #print(f3d.params)
+        #f3d.results.summary()
+        print(f3d.params)
 
-""" np.save(f"{output}/{model}/nautilus_samples.npy", f3d.samples)
        
 quantiles = [0.16,0.50,0.84]
 cfig = corner.corner(f3d.samples, bins = 60, weights=f3d.weights, title_quantiles=quantiles,quantiles=quantiles,show_titles=True,
@@ -226,11 +225,11 @@ np.save(f"{output}/{model}/nautilus_params.npy", f3d.params)
 with open(f"{output}/{model}/nautilus_labels.txt", "w") as f:
     f.write(str(f3d.freepar_names))
 with open(f"{output}/{model}/nautilus_ndim.txt", "w") as f:
-    f.write(str(f3d.ndim)) """
+    f.write(str(f3d.ndim))
 
 
 # Plot the 2-D marginalized posteriors.
-quantiles = [0.16,0.50,0.84]
+""" quantiles = [0.16,0.50,0.84]
 cfig, caxes = dyplot.cornerplot(f3d.results,show_titles=True,title_quantiles=quantiles,
                                 quantiles=quantiles, color='purple',max_n_ticks=5, \
                                 labels=f3d.freepar_names, label_kwargs=dict(fontsize=20))
@@ -241,6 +240,7 @@ tfig, axes = dyplot.traceplot(f3d.results, show_titles=True,
                              connect_highlight=range(5))
 
 tfig.savefig(f'{output}/{model}/{model}_trace.pdf',bbox_inches='tight')
+
 # Saving samples
 np.save(f"{output}/{model}/dynesty_samples.npy", f3d.results.samples)
 np.save(f"{output}/{model}/dynesty_weights.npy", f3d.weights)
@@ -248,14 +248,14 @@ np.save(f"{output}/{model}/dynesty_params.npy", f3d.params)
 with open(f"{output}/{model}/dynesty_labels.txt", "w") as f:
     f.write(str(f3d.freepar_names))
 with open(f"{output}/{model}/dynesty_ndim.txt", "w") as f:
-    f.write(str(f3d.ndim))
+    f.write(str(f3d.ndim)) """
 
 samples = f3d.samples
 weights = f3d.weights
 params = f3d.params
 
 rad_mc = f3d._inri.r['radii']  # Get the radii array
-labs = f3d.freepar_names
+labs = f3d.freepar_names 
 
 ra, pp, err_up, err_low = np.zeros(shape=(4, len(params)))
 # Adjust how we index rad_mc for vrot and vdisp parameters, using modulo if needed

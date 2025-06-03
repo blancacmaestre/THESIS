@@ -1,0 +1,3 @@
+
+Writing the best model to output directory ... Done!
+[111.49702452  28.27525016  59.27843822  37.0911494 ]
